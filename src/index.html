@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <meta charset="utf-8"/>
+    <head>
+        <title>Jimp browser example 1</title>
+    </head>
+    <body>
+
+    <!-- Javascript image manipulation script -->
+    <script src="jimp_browser/lib/jimp.min.js"></script>
+    <script>
+    const BADGE_WIDTH = 23;
+    const BADGE_HEIGHT = 29;
+    const NUM_WIDTHS = [9,5,9,9,9,9,9,9,9,9];
+    const NUM_HEIGHT = 11;
+    const TEXT_OFFSET_Y = 11;
+    const SPECIAL_TEXT_OFFSET_Y = 7;
+    const BADGE_TYPES = {"A": {value: 0, name: "Attendee"},
+                        "M": {value: 1, name: "Media"},
+                        "O": {value: 2, name: "Omeganaut"},
+                        "E": {value: 3, name: "Enforcer"}}
+    const BADGE_IMG_LOOKUP = {"AUS": "PAX_AUS.png",
+                              "DEV": "PAX_DEV.png",
+                              "EAST": "PAX_EAST.png",
+                              "SOUTH": "PAX_SOUTH.png",
+                              "WEST": "PAX_WEST.png" }
+
+    var split_paxes = new RegExp("[|;]");
+    var re_pax = new RegExp("^\\s*(F|)(\\d+):(\\w+):(\\w+)\\s*")
+    var lkup_groups = { future: 1, year: 2, paxtype: 3, badgetype: 4 };
+
+    function getBadge(year, future, badge_type){
+        var y = future ? BADGE_HEIGHT : 0;
+        var x = BADGE_TYPES[badge_type].value * BADGE_WIDTH;
+        var badge; //BufferedImage badge = new BufferedImage(BADGE_WIDTH, BADGE_HEIGHT,  BufferedImage.TYPE_INT_ARGB);
+        //badge.getGraphics().drawImage(image.getSubimage(x, y, BADGE_WIDTH, BADGE_HEIGHT), 0, 0, null);
+        drawNumber(badge, future, year, badge_type);
+        return badge;
+    }
+
+    function drawNumber(badge, future, year, badge_type) {
+        var onesDigit = Number(year.slice(-1))
+        var tensDigit = Number(year.slice(-2))
+        var numWidth = NUM_WIDTHS[onesDigit] + NUM_WIDTHS[tensDigit] + 1;
+        var textOffsetX = (BADGE_WIDTH - numWidth) / 2 ;
+        var textOffsetY = badge_type == "A" ? TEXT_OFFSET_Y : SPECIAL_TEXT_OFFSET_Y;
+
+        var color = (badgeType == "E") || future;
+        var g// = badge.getGraphics();
+        drawDigit(g, tensDigit, color, textOffsetX, textOffsetY);
+        drawDigit(g, onesDigit, color, textOffsetX + Constants.NUM_WIDTHS[tensDigit] + 1, textOffsetY);
+    }
+
+    function drawDigit(g, digit, color, x, y) {
+        var digitOffsetX = BADGE_TYPES.length * BADGE_WIDTH;
+        for(int i = digit - digit % 5; i < digit; i++) {
+          digitOffsetX += NUM_WIDTHS[i];
+        }
+        var digitOffsetY = digit < 5 ? 0 : NUM_HEIGHT;
+        if(!color ) digitOffsetY += (NUM_HEIGHT * 2);
+        //BufferedImage digitImg = image.getSubimage(digitOffsetX, digitOffsetY, Constants.NUM_WIDTHS[digit], Constants.NUM_HEIGHT);
+        //g.drawImage(digitImg, x, y, null);
+    }
+
+    function makeBadges(paxesstring) {
+        var paxarray = paxesstring.split(split_paxes)
+        console.log( "paxarray:" )
+        console.log( paxarray )
+        var badge_array = []
+        for (pax_idx in paxarray) {
+          var pax = paxarray[pax_idx]
+          var matchset = pax.match( re_pax )
+          if( matchset != null ) {
+            var badge = { future: matchset[lkup_groups.future] == 'F',
+                          year: matchset[lkup_groups.year],
+                          paxtype: matchset[lkup_groups.paxtype],
+                          badgetype: matchset[lkup_groups.badgetype] }
+
+            badge_array.push( matchset )
+            }
+        }
+        console.log( badge_array )
+    }
+
+    </script>
+    <input type="text" size="500" alt="Field of PAXes" onchange="makeBadges(this.value)">
+    <img id="badges">
+    </body>
+</html>
